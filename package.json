@@ -1,0 +1,9 @@
+{
+  "name": "va-job-feed",
+  "version": "1.0.0",
+  "description": "Remote VA & Data Entry job feed with live API proxy",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
