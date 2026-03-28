@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VA & Data Entry Job Feed</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f4f0;
+      color: #1a1a18;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e5e4e0;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo { font-size: 17px; font-weight: 600; color: #1a1a18; }
+    .logo span { color: #185FA5; }
+
+    .main { max-width: 800px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+    .filters {
+      background: #fff;
+      border: 1px solid #e5e4e0;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 8px;
+    }
+
+    .chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 1rem; }
+
+    .chip {
+      font-size: 13px;
+      padding: 5px 13px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      background: #f5f4f0;
+      color: #555;
+      cursor: pointer;
+      transition: all .15s;
+      user-select: none;
+    }
+    .chip.active { background: #E6F1FB; border-color: #185FA5; color: #0C447C; }
+
+    .search-row { display: flex; gap: 8px; margin-top: .25rem; }
+    .search-row input {
+      flex: 1;
+      font-size: 14px;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f5f4f0;
+      color: #1a1a18;
+      outline: none;
+    }
+    .search-row input:focus { border-color: #185FA5; background: #fff; }
+
+    .btn {
+      font-size: 14px;
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1px solid #185FA5;
+      background: #185FA5;
+      color: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s;
+    }
+    .btn:hover { background: #0C447C; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .source-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-size: 12px;
+      color: #888;
+    }
+    .src-pill {
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      color: #888;
+      background: #fff;
+      font-size: 12px;
+    }
+    .src-ok { border-color: #3B6D11; color: #3B6D11; background: #EAF3DE; }
+    .src-fail { border-color: #A32D2D; color: #A32D2D; background: #FCEBEB; }
+    .src-loading { border-color: #185FA5; color: #185FA5; background: #E6F1FB; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+    .stat {
+      background: #fff;
+      border: 1px solid #e5e4e0;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-n { font-size: 22px; font-weight: 600; color: #1a1a18; }
+    .stat-l { font-size: 11px; color: #888; margin-top: 2px; }
+
+    .job-card {
+      background: #fff;
+      border: 1px solid #e5e4e0;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 10px;
+      transition: border-color .15s;
+    }
+    .job-card:hover { border-color: #b0c8e8; }
+
+    .job-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .job-title { font-size: 15px; font-weight: 600; color: #1a1a18; }
+    .job-co { font-size: 13px; color: #555; margin-top: 2px; }
+    .job-co-detail { font-size: 12px; color: #999; margin-top: 2px; }
+
+    .badges { display: flex; gap: 5px; flex-wrap: wrap; flex-shrink: 0; }
+    .badge {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .badge-remote { background: #EAF3DE; color: #3B6D11; }
+    .badge-src { background: #EEEDFE; color: #3C3489; }
+    .badge-new { background: #E6F1FB; color: #185FA5; }
+
+    .job-meta {
+      display: flex;
+      gap: 14px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #888;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .salary { font-size: 13px; font-weight: 600; color: #1a1a18; }
+
+    .job-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .apply-btn {
+      font-size: 13px;
+      padding: 6px 16px;
+      border-radius: 8px;
+      border: 1px solid #185FA5;
+      color: #185FA5;
+      text-decoration: none;
+      background: transparent;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .apply-btn:hover { background: #E6F1FB; }
+    .save-btn {
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      color: #555;
+      cursor: pointer;
+      background: transparent;
+      transition: all .15s;
+    }
+    .save-btn:hover { background: #f5f4f0; }
+    .save-btn.saved { color: #3B6D11; border-color: #3B6D11; }
+
+    .empty, .loading {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #888;
+      font-size: 14px;
+      line-height: 1.7;
+      background: #fff;
+      border: 1px solid #e5e4e0;
+      border-radius: 12px;
+    }
+    .loading::after {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 28px;
+      border: 2px solid #ddd;
+      border-top-color: #185FA5;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 1rem auto 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .direct-links a { color: #185FA5; text-decoration: none; margin: 0 6px; }
+    .direct-links a:hover { text-decoration: underline; }
+
+    @media (max-width: 500px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">VA <span>&</span> Data Entry Jobs</div>
+  <button class="btn" onclick="fetchAll()" id="refresh-btn">Refresh feed</button>
+</header>
+
+<div class="main">
+
+  <div class="filters">
+    <div class="filter-label">Job type</div>
+    <div class="chips" id="type-chips">
+      <span class="chip active" data-val="virtual assistant">Virtual Assistant</span>
+      <span class="chip active" data-val="data entry">Data Entry</span>
+      <span class="chip" data-val="admin assistant">Admin Assistant</span>
+      <span class="chip" data-val="executive assistant">Executive Assistant</span>
+      <span class="chip" data-val="transcription">Transcription</span>
+      <span class="chip" data-val="customer support">Customer Support</span>
+    </div>
+
+    <div class="filter-label">Keywords</div>
+    <div class="search-row">
+      <input type="text" id="kw" placeholder="e.g. part-time, Shopify, $15/hr, Notion..." />
+      <button class="btn" onclick="fetchAll()">Search</button>
+    </div>
+  </div>
+
+  <div class="source-bar">
+    <span>Sources:</span>
+    <span class="src-pill" id="src-remotive">Remotive</span>
+    <span class="src-pill" id="src-himalayas">Himalayas</span>
+    <span class="src-pill" id="src-jobicy">Jobicy</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-total">—</div><div class="stat-l">Live jobs</div></div>
+    <div class="stat"><div class="stat-n" id="s-remote">—</div><div class="stat-l">Fully remote</div></div>
+    <div class="stat"><div class="stat-n" id="s-new">—</div><div class="stat-l">This week</div></div>
+    <div class="stat"><div class="stat-n" id="s-src">—</div><div class="stat-l">Sources live</div></div>
+  </div>
+
+  <div id="feed">
+    <div class="empty">Click <strong>Refresh feed</strong> or <strong>Search</strong> to load live jobs.</div>
+  </div>
+
+</div>
+
+<script>
+  // ─── IMPORTANT ───────────────────────────────────────────────
+  // After deploying to Vercel, replace this with your actual URL.
+  // e.g. 'https://va-job-feed.vercel.app'
+  // Leave as empty string while developing locally with `vercel dev`
+  const BASE_URL = '';
+  // ─────────────────────────────────────────────────────────────
+
+  document.querySelectorAll('.chip').forEach(c =>
+    c.addEventListener('click', () => c.classList.toggle('active'))
+  );
+
+  function getKeywords() {
+    const active = [...document.querySelectorAll('#type-chips .chip.active')].map(c => c.dataset.val);
+    const kw = document.getElementById('kw').value.trim();
+    return [...active, ...(kw ? [kw] : [])];
+  }
+
+  function setSrc(id, state) {
+    const el = document.getElementById('src-' + id);
+    el.className = 'src-pill ' + (state === 'ok' ? 'src-ok' : state === 'fail' ? 'src-fail' : 'src-loading');
+    const labels = { ok: ' ✓', fail: ' ✗', loading: '...' };
+    el.textContent = id.charAt(0).toUpperCase() + id.slice(1) + (labels[state] || '');
+  }
+
+  function daysAgo(dateStr) {
+    if (!dateStr) return 'Recently';
+    const d = new Date(dateStr), now = new Date();
+    const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Yesterday';
+    if (diff < 7) return diff + ' days ago';
+    if (diff < 30) return Math.floor(diff / 7) + ' weeks ago';
+    return Math.floor(diff / 30) + ' months ago';
+  }
+
+  function isRecent(dateStr) {
+    if (!dateStr) return false;
+    const diff = Math.floor((new Date() - new Date(dateStr)) / (1000 * 60 * 60 * 24));
+    return diff <= 7;
+  }
+
+  async function fetchRemotive(keywords) {
+    setSrc('remotive', 'loading');
+    try {
+      const q = keywords.slice(0, 2).join(' ');
+      const r = await fetch(`${BASE_URL}/api/remotive?search=${encodeURIComponent(q)}&limit=30`);
+      if (!r.ok) throw new Error();
+      const data = await r.json();
+      setSrc('remotive', 'ok');
+      const seen = new Set();
+      return (data.jobs || []).filter(j => {
+        if (seen.has(j.id)) return false;
+        seen.add(j.id);
+        return true;
+      }).map(j => ({
+        id: 'rem-' + j.id,
+        title: j.title,
+        company: j.company_name,
+        companyInfo: j.company_name + ' · ' + j.job_type,
+        location: 'Remote',
+        salary: j.salary || 'Not specified',
+        postedDate: daysAgo(j.publication_date),
+        pubDateRaw: j.publication_date,
+        applyUrl: j.url,
+        remote: true,
+        workFromAnywhere: true,
+        source: 'Remotive',
+        tags: j.tags || []
+      }));
+    } catch (e) {
+      setSrc('remotive', 'fail');
+      return [];
+    }
+  }
+
+  async function fetchHimalayas(keywords) {
+    setSrc('himalayas', 'loading');
+    try {
+      const q = keywords.slice(0, 2).join(' ');
+      const r = await fetch(`${BASE_URL}/api/himalayas?q=${encodeURIComponent(q)}&limit=30`);
+      if (!r.ok) throw new Error();
+      const data = await r.json();
+      setSrc('himalayas', 'ok');
+      return (data.jobs || []).map(j => ({
+        id: 'him-' + j.id,
+        title: j.title,
+        company: j.companyName || j.company || '',
+        companyInfo: (j.companyDescription || '').slice(0, 90) || j.companyName,
+        location: j.locationRestrictions || 'Remote',
+        salary: j.salary || (j.minSalary && j.maxSalary ? `$${j.minSalary}–$${j.maxSalary}` : 'Not specified'),
+        postedDate: daysAgo(j.publishedAt),
+        pubDateRaw: j.publishedAt,
+        applyUrl: j.applicationLink || j.url || 'https://himalayas.app/jobs',
+        remote: true,
+        workFromAnywhere: !j.locationRestrictions || j.locationRestrictions.toLowerCase().includes('world'),
+        source: 'Himalayas',
+        tags: j.tags || []
+      }));
+    } catch (e) {
+      setSrc('himalayas', 'fail');
+      return [];
+    }
+  }
+
+  async function fetchJobicy(keywords) {
+    setSrc('jobicy', 'loading');
+    try {
+      const q = keywords.slice(0, 2).join(' ');
+      const r = await fetch(`${BASE_URL}/api/jobicy?search_keywords=${encodeURIComponent(q)}&count=30`);
+      if (!r.ok) throw new Error();
+      const data = await r.json();
+      setSrc('jobicy', 'ok');
+      return (data.jobs || []).map(j => ({
+        id: 'job-' + j.id,
+        title: j.jobTitle,
+        company: j.companyName,
+        companyInfo: (j.companyDescription || '').slice(0, 90) || j.companyName,
+        location: j.jobGeo || 'Remote',
+        salary: j.annualSalaryMin && j.annualSalaryMax
+          ? `$${Math.round(j.annualSalaryMin / 1000)}k–$${Math.round(j.annualSalaryMax / 1000)}k/yr`
+          : 'Not specified',
+        postedDate: daysAgo(j.pubDate),
+        pubDateRaw: j.pubDate,
+        applyUrl: j.url || 'https://jobicy.com',
+        remote: true,
+        workFromAnywhere: (j.jobGeo || '').toLowerCase().includes('world') || (j.jobGeo || '').toLowerCase().includes('anywhere'),
+        source: 'Jobicy',
+        tags: j.jobIndustry || []
+      }));
+    } catch (e) {
+      setSrc('jobicy', 'fail');
+      return [];
+    }
+  }
+
+  function scoreJob(job, keywords) {
+    const text = (job.title + ' ' + (job.tags || []).join(' ')).toLowerCase();
+    return keywords.filter(k => text.includes(k.toLowerCase())).length;
+  }
+
+  async function fetchAll() {
+    const keywords = getKeywords();
+    const feed = document.getElementById('feed');
+    const btn = document.getElementById('refresh-btn');
+    btn.disabled = true;
+    feed.innerHTML = '<div class="loading">Fetching live jobs from Remotive, Himalayas & Jobicy...</div>';
+    ['s-total', 's-remote', 's-new', 's-src'].forEach(id => document.getElementById(id).textContent = '—');
+
+    const [remJobs, himJobs, jobJobs] = await Promise.all([
+      fetchRemotive(keywords),
+      fetchHimalayas(keywords),
+      fetchJobicy(keywords)
+    ]);
+
+    btn.disabled = false;
+    let all = [...remJobs, ...himJobs, ...jobJobs];
+    all.sort((a, b) => scoreJob(b, keywords) - scoreJob(a, keywords));
+
+    const liveSrc = [remJobs.length > 0, himJobs.length > 0, jobJobs.length > 0].filter(Boolean).length;
+    const newJobs = all.filter(j => isRecent(j.pubDateRaw)).length;
+
+    document.getElementById('s-total').textContent = all.length;
+    document.getElementById('s-remote').textContent = all.filter(j => j.remote).length;
+    document.getElementById('s-new').textContent = newJobs;
+    document.getElementById('s-src').textContent = liveSrc + '/3';
+
+    if (!all.length) {
+      feed.innerHTML = `
+        <div class="empty">
+          No jobs found right now. You can also browse directly:<br><br>
+          <div class="direct-links">
+            <a href="https://remotive.com/remote-jobs?search=virtual+assistant" target="_blank">Remotive ↗</a>
+            <a href="https://himalayas.app/jobs?q=data+entry" target="_blank">Himalayas ↗</a>
+            <a href="https://jobicy.com/?s=virtual+assistant" target="_blank">Jobicy ↗</a>
+          </div>
+        </div>`;
+      return;
+    }
+
+    feed.innerHTML = all.map(j => `
+      <div class="job-card">
+        <div class="job-top">
+          <div style="flex:1;min-width:0;">
+            <div class="job-title">${j.title}</div>
+            <div class="job-co">${j.company}</div>
+            ${j.companyInfo ? `<div class="job-co-detail">${j.companyInfo}</div>` : ''}
+          </div>
+          <div class="badges">
+            ${isRecent(j.pubDateRaw) ? '<span class="badge badge-new">New</span>' : ''}
+            <span class="badge badge-src">${j.source}</span>
+            <span class="badge badge-remote">${j.workFromAnywhere ? 'Anywhere' : 'Remote'}</span>
+          </div>
+        </div>
+        <div class="job-meta">
+          <span class="salary">${j.salary}</span>
+          <span>${j.postedDate}</span>
+          <span>${j.location}</span>
+        </div>
+        <div class="job-actions">
+          <a class="apply-btn" href="${j.applyUrl}" target="_blank" rel="noopener">Apply now ↗</a>
+          <button class="save-btn" onclick="this.textContent='Saved ✓';this.classList.add('saved');">Save</button>
+        </div>
+      </div>
+    `).join('');
+  }
+</script>
+
+</body>
+</html>
